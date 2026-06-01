@@ -11,8 +11,6 @@ load_dotenv(env_path)
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-print("ENV PATH =", env_path)
-print("DATABASE_URL =", DATABASE_URL)
 
 engine = create_engine(DATABASE_URL)
 
