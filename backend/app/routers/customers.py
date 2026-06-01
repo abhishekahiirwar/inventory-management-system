@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
+
 
 from app.database import get_db
 from app.models.customer import Customer
@@ -75,8 +77,17 @@ def delete_customer(
             detail="Customer not found"
         )
 
-    db.delete(customer)
-    db.commit()
+    try:
+        db.delete(customer)
+        db.commit()
+
+    except IntegrityError:
+        db.rollback()
+
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot delete customer because orders exist for this customer"
+        )
 
     return {
         "message": "Customer deleted successfully"

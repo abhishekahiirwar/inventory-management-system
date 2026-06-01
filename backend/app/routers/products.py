@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from app.database import get_db
 from app.models.product import Product
@@ -113,8 +114,17 @@ def delete_product(
             detail="Product not found"
         )
 
-    db.delete(product)
-    db.commit()
+    try:
+        db.delete(product)
+        db.commit()
+
+    except IntegrityError:
+        db.rollback()
+
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot delete product because it is used in existing orders"
+        )
 
     return {
         "message": "Product deleted successfully"
